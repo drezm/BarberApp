@@ -1,3 +1,5 @@
+// frontend/js/auth.js
+
 // Утилиты для работы с токеном
 const TokenUtils = {
     set(token) {
@@ -62,82 +64,179 @@ const UserUtils = {
 
 // API клиент
 class ApiClient {
-  constructor() {
-    this.baseURL = '/api';
-  }
-
-  async request(endpoint, options = {}) {
-    const url = `${this.baseURL}${endpoint}`;
-    const token = TokenUtils.get();
-
-    const config = {
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { Authorization: `Bearer ${token}` })
-      },
-      ...options
-    };
-
-    if (config.body && typeof config.body !== 'string') {
-      config.body = JSON.stringify(config.body);
+    constructor() {
+        this.baseURL = '/api';
     }
-
-    const response = await fetch(url, config);
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data.error || 'Произошла ошибка при выполнении запроса');
-    }
-    return data;
-  }
-
     
-   // Аутентификация
-  async login(email, password) { return this.request('/auth/login', { method: 'POST', body: { email, password } }); }
-  async register(userData) { return this.request('/auth/register', { method: 'POST', body: userData }); }
-  async getProfile() { return this.request('/auth/profile'); }
-  async updateProfile(data) { return this.request('/auth/profile', { method: 'PUT', body: data }); }
-
-  // Услуги
-  async getServices() { return this.request('/services'); }
-  async getServiceById(id) { return this.request(`/services/${id}`); }
-  async createService(serviceData) { return this.request('/services', { method: 'POST', body: serviceData }); }
-  async updateService(id, serviceData) { return this.request(`/services/${id}`, { method: 'PUT', body: serviceData }); }
-  async deleteService(id) { return this.request(`/services/${id}`, { method: 'DELETE' }); }
-
-  // ДОБАВЛЕНО: мастера по услуге (для формы записи)
-  async getServiceMasters(serviceId) {
-    return this.request(`/services/${serviceId}/masters`);
-  }
-
-  // Мастера
-  async getMasters() { return this.request('/masters'); }
-  async getMasterSchedule(masterId, date = null) {
-    const params = date ? `?date=${date}` : '';
-    return this.request(`/masters/${masterId}/schedule${params}`);
-  }
-  async getMasterServices(masterId) { return this.request(`/masters/${masterId}/services`); }
-  async createMasterSchedule(scheduleData) { return this.request('/masters/schedule', { method: 'POST', body: scheduleData }); }
-  async getMasterStats() { return this.request('/masters/stats'); }
-
-  // Записи
-  async createAppointment(appointmentData) { return this.request('/appointments', { method: 'POST', body: appointmentData }); }
-  async getClientAppointments() { return this.request('/appointments/client'); }
-  async getMasterAppointments(date = null) {
-    const params = date ? `?date=${date}` : '';
-    return this.request(`/appointments/master${params}`);
-  }
-  async getAllAppointments() { return this.request('/appointments/all'); }
-  async cancelAppointment(id) { return this.request(`/appointments/${id}/cancel`, { method: 'PATCH' }); }
-  async completeAppointment(id, notes = '') { return this.request(`/appointments/${id}/complete`, { method: 'PATCH', body: { notes } }); }
-
-  // Клиенты (админ)
-  async getAllClients() { return this.request('/clients'); }
-  async getClientById(id) { return this.request(`/clients/${id}`); }
-  async updateClient(id, clientData) { return this.request(`/clients/${id}`, { method: 'PUT', body: clientData }); }
-  async deleteClient(id) { return this.request(`/clients/${id}`, { method: 'DELETE' }); }
+    async request(endpoint, options = {}) {
+        const url = `${this.baseURL}${endpoint}`;
+        const token = TokenUtils.get();
+        
+        const config = {
+            headers: {
+                'Content-Type': 'application/json',
+                ...(token && { Authorization: `Bearer ${token}` })
+            },
+            ...options
+        };
+        
+        if (config.body && typeof config.body !== 'string') {
+            config.body = JSON.stringify(config.body);
+        }
+        
+        try {
+            const response = await fetch(url, config);
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.error || 'Произошла ошибка при выполнении запроса');
+            }
+            
+            return data;
+        } catch (error) {
+            console.error('API Error:', error);
+            throw error;
+        }
+    }
+    
+    // Методы аутентификации
+    async login(email, password) {
+        return this.request('/auth/login', {
+            method: 'POST',
+            body: { email, password }
+        });
+    }
+    
+    async register(userData) {
+        return this.request('/auth/register', {
+            method: 'POST',
+            body: userData
+        });
+    }
+    
+    async getProfile() {
+        return this.request('/auth/profile');
+    }
+    
+    async updateProfile(data) {
+        return this.request('/auth/profile', {
+            method: 'PUT',
+            body: data
+        });
+    }
+    
+    // Методы для услуг
+    async getServices() {
+        return this.request('/services');
+    }
+    
+    async getServiceById(id) {
+        return this.request(`/services/${id}`);
+    }
+    
+    async createService(serviceData) {
+        return this.request('/services', {
+            method: 'POST',
+            body: serviceData
+        });
+    }
+    
+    async updateService(id, serviceData) {
+        return this.request(`/services/${id}`, {
+            method: 'PUT',
+            body: serviceData
+        });
+    }
+    
+    async deleteService(id) {
+        return this.request(`/services/${id}`, {
+            method: 'DELETE'
+        });
+    }
+    
+    // Методы для мастеров
+    async getMasters() {
+        return this.request('/masters');
+    }
+    
+    async getMasterSchedule(masterId, date = null) {
+        const params = date ? `?date=${date}` : '';
+        return this.request(`/masters/${masterId}/schedule${params}`);
+    }
+    
+    async getMasterServices(masterId) {
+        return this.request(`/masters/${masterId}/services`);
+    }
+    
+    async createMasterSchedule(scheduleData) {
+        return this.request('/masters/schedule', {
+            method: 'POST',
+            body: scheduleData
+        });
+    }
+    
+    async getMasterStats() {
+        return this.request('/masters/stats');
+    }
+    
+    // Методы для записей
+    async createAppointment(appointmentData) {
+        return this.request('/appointments', {
+            method: 'POST',
+            body: appointmentData
+        });
+    }
+    
+    async getClientAppointments() {
+        return this.request('/appointments/client');
+    }
+    
+    async getMasterAppointments(date = null) {
+        const params = date ? `?date=${date}` : '';
+        return this.request(`/appointments/master${params}`);
+    }
+    
+    async getAllAppointments() {
+        return this.request('/appointments/all');
+    }
+    
+    async cancelAppointment(id) {
+        return this.request(`/appointments/${id}/cancel`, {
+            method: 'PATCH'
+        });
+    }
+    
+    async completeAppointment(id, notes = '') {
+        return this.request(`/appointments/${id}/complete`, {
+            method: 'PATCH',
+            body: { notes }
+        });
+    }
+    
+    // Методы для клиентов (для админа)
+    async getAllClients() {
+        return this.request('/clients');
+    }
+    
+    async getClientById(id) {
+        return this.request(`/clients/${id}`);
+    }
+    
+    async updateClient(id, clientData) {
+        return this.request(`/clients/${id}`, {
+            method: 'PUT',
+            body: clientData
+        });
+    }
+    
+    async deleteClient(id) {
+        return this.request(`/clients/${id}`, {
+            method: 'DELETE'
+        });
+    }
 }
 
-// Экземпляр
+// Создаем глобальный экземпляр API клиента
 const api = new ApiClient();
 
 // Система уведомлений
@@ -172,6 +271,7 @@ class NotificationSystem {
             case 'success': return 'fa-check-circle';
             case 'error': return 'fa-exclamation-circle';
             case 'warning': return 'fa-exclamation-triangle';
+            case 'info': return 'fa-info-circle';
             default: return 'fa-info-circle';
         }
     }
@@ -186,6 +286,11 @@ class NotificationSystem {
     
     warning(message, duration) {
         this.show(message, 'warning', duration);
+    }
+    
+    // ДОБАВЛЕНО: метод info для информационных уведомлений
+    info(message, duration) {
+        this.show(message, 'info', duration);
     }
 }
 
@@ -348,49 +453,49 @@ class AuthManager {
             const appointments = appointmentsResponse.appointments || [];
             
             container.innerHTML = `
-                <div class="container">
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <h3>Всего записей</h3>
-                            <div class="value">${appointments.length}</div>
-                        </div>
-                        <div class="stat-card">
-                            <h3>Активных записей</h3>
-                            <div class="value">${appointments.filter(a => a.status === 'scheduled').length}</div>
-                        </div>
-                        <div class="stat-card">
-                            <h3>Завершенных записей</h3>
-                            <div class="value">${appointments.filter(a => a.status === 'completed').length}</div>
-                        </div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Всего записей</h3>
+                        <div class="value">${appointments.length}</div>
                     </div>
-                    
-                    <div class="appointments-section">
-                        <h3 style="margin-bottom: 1rem;">Мои записи</h3>
-                        <div class="appointments-list">
-                            ${appointments.length > 0 ? appointments.map(appointment => `
-                                <div class="appointment-card" style="background: var(--bg-card); padding: 1.5rem; border-radius: var(--radius-lg); border: 1px solid var(--border-light); margin-bottom: 1rem;">
-                                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
-                                        <div>
-                                            <h4 style="font-size: var(--font-size-lg); font-weight: 600; margin-bottom: 0.5rem;">${appointment.service_name}</h4>
-                                            <p style="color: var(--text-secondary); margin-bottom: 0.25rem;">Мастер: ${appointment.master_name}</p>
-                                            <p style="color: var(--text-secondary); margin-bottom: 0.25rem;">Дата: ${new Date(appointment.appointment_date).toLocaleDateString('ru-RU')}</p>
-                                            <p style="color: var(--text-secondary);">Время: ${appointment.start_time.slice(0, 5)} - ${appointment.end_time.slice(0, 5)}</p>
+                    <div class="stat-card">
+                        <h3>Активных записей</h3>
+                        <div class="value">${appointments.filter(a => a.status === 'scheduled').length}</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Завершенных записей</h3>
+                        <div class="value">${appointments.filter(a => a.status === 'completed').length}</div>
+                    </div>
+                </div>
+                
+                <div class="appointments-section">
+                    <h3 style="margin-bottom: 1rem;">Мои записи</h3>
+                    <div class="appointments-list">
+                        ${appointments.length > 0 ? appointments.map(appointment => `
+                            <div class="appointment-card">
+                                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                                    <div>
+                                        <h4>${appointment.service_name}</h4>
+                                        <p>Мастер: ${appointment.master_name}</p>
+                                        <p>Дата: ${new Date(appointment.appointment_date).toLocaleDateString('ru-RU')}</p>
+                                        <p>Время: ${appointment.start_time.slice(0, 5)} - ${appointment.end_time.slice(0, 5)}</p>
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <div class="status ${appointment.status}">
+                                            ${this.getStatusText(appointment.status)}
                                         </div>
-                                        <div style="text-align: right;">
-                                            <div class="status ${appointment.status}" style="padding: 0.25rem 0.75rem; border-radius: var(--radius-full); font-size: var(--font-size-sm); font-weight: 500; margin-bottom: 0.5rem;">
-                                                ${this.getStatusText(appointment.status)}
-                                            </div>
-                                            <div style="font-weight: 600; color: var(--primary-color);">${appointment.total_price} ₽</div>
+                                        <div style="font-weight: 600; color: var(--accent); margin-top: 0.5rem;">
+                                            ${appointment.total_price} ₽
                                         </div>
                                     </div>
-                                    ${appointment.status === 'scheduled' ? `
-                                        <button onclick="cancelAppointment('${appointment.id}')" class="btn-secondary" style="padding: 0.5rem 1rem; font-size: var(--font-size-sm);">
-                                            Отменить запись
-                                        </button>
-                                    ` : ''}
                                 </div>
-                            `).join('') : '<p style="text-align: center; color: var(--text-secondary); padding: 2rem;">У вас пока нет записей</p>'}
-                        </div>
+                                ${appointment.status === 'scheduled' ? `
+                                    <button onclick="cancelAppointment('${appointment.id}')" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: var(--fs-sm);">
+                                        Отменить запись
+                                    </button>
+                                ` : ''}
+                            </div>
+                        `).join('') : '<p style="text-align: center; color: var(--text-soft); padding: 2rem;">У вас пока нет записей</p>'}
                     </div>
                 </div>
             `;
@@ -409,54 +514,51 @@ class AuthManager {
             
             const stats = statsResponse.stats;
             const todayAppointments = statsResponse.todayAppointments || [];
-            const allAppointments = appointmentsResponse.appointments || [];
             
             container.innerHTML = `
-                <div class="container">
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <h3>Всего записей (30 дней)</h3>
-                            <div class="value">${stats.totalAppointments}</div>
-                        </div>
-                        <div class="stat-card">
-                            <h3>Завершено записей</h3>
-                            <div class="value">${stats.completedAppointments}</div>
-                        </div>
-                        <div class="stat-card">
-                            <h3>Доходы (30 дней)</h3>
-                            <div class="value">${stats.totalEarnings} ₽</div>
-                        </div>
-                        <div class="stat-card">
-                            <h3>Средний чек</h3>
-                            <div class="value">${Math.round(stats.avgAppointmentPrice)} ₽</div>
-                        </div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Всего записей (30 дней)</h3>
+                        <div class="value">${stats.totalAppointments}</div>
                     </div>
-                    
-                    <div style="margin-bottom: 2rem;">
-                        <button onclick="showScheduleManager()" class="btn-primary">
-                            <i class="fas fa-calendar-plus"></i>
-                            Управление расписанием
-                        </button>
+                    <div class="stat-card">
+                        <h3>Завершено записей</h3>
+                        <div class="value">${stats.completedAppointments}</div>
                     </div>
-                    
-                    <div class="appointments-section">
-                        <h3 style="margin-bottom: 1rem;">Записи на сегодня</h3>
-                        <div class="appointments-list">
-                            ${todayAppointments.length > 0 ? todayAppointments.map(appointment => `
-                                <div class="appointment-card" style="background: var(--bg-card); padding: 1.5rem; border-radius: var(--radius-lg); border: 1px solid var(--border-light); margin-bottom: 1rem;">
-                                    <div style="display: flex; justify-content: space-between; align-items: start;">
-                                        <div>
-                                            <h4 style="font-size: var(--font-size-lg); font-weight: 600; margin-bottom: 0.5rem;">${appointment.service_name}</h4>
-                                            <p style="color: var(--text-secondary); margin-bottom: 0.25rem;">Клиент: ${appointment.client_name}</p>
-                                            <p style="color: var(--text-secondary);">Время: ${appointment.start_time.slice(0, 5)} - ${appointment.end_time.slice(0, 5)}</p>
-                                        </div>
-                                        <div class="status ${appointment.status}">
-                                            ${this.getStatusText(appointment.status)}
-                                        </div>
+                    <div class="stat-card">
+                        <h3>Доходы (30 дней)</h3>
+                        <div class="value">${stats.totalEarnings} ₽</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Средний чек</h3>
+                        <div class="value">${Math.round(stats.avgAppointmentPrice)} ₽</div>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 2rem;">
+                    <button onclick="showScheduleManager()" class="btn btn-primary">
+                        <i class="fas fa-calendar-plus"></i>
+                        Управление расписанием
+                    </button>
+                </div>
+                
+                <div class="appointments-section">
+                    <h3 style="margin-bottom: 1rem;">Записи на сегодня</h3>
+                    <div class="appointments-list">
+                        ${todayAppointments.length > 0 ? todayAppointments.map(appointment => `
+                            <div class="appointment-card">
+                                <div style="display: flex; justify-content: space-between; align-items: start;">
+                                    <div>
+                                        <h4>${appointment.service_name}</h4>
+                                        <p>Клиент: ${appointment.client_name}</p>
+                                        <p>Время: ${appointment.start_time.slice(0, 5)} - ${appointment.end_time.slice(0, 5)}</p>
+                                    </div>
+                                    <div class="status ${appointment.status}">
+                                        ${this.getStatusText(appointment.status)}
                                     </div>
                                 </div>
-                            `).join('') : '<p style="text-align: center; color: var(--text-secondary); padding: 2rem;">На сегодня записей нет</p>'}
-                        </div>
+                            </div>
+                        `).join('') : '<p style="text-align: center; color: var(--text-soft); padding: 2rem;">На сегодня записей нет</p>'}
                     </div>
                 </div>
             `;
@@ -468,23 +570,21 @@ class AuthManager {
     
     async loadAdminDashboard(container) {
         container.innerHTML = `
-            <div class="container">
-                <div class="admin-tabs" style="margin-bottom: 2rem; display: flex; gap: 1rem; border-bottom: 1px solid var(--border-light); padding-bottom: 1rem;">
-                    <button class="tab-button active" onclick="showAdminTab('overview')">Обзор</button>
-                    <button class="tab-button" onclick="showAdminTab('appointments')">Записи</button>
-                    <button class="tab-button" onclick="showAdminTab('clients')">Клиенты</button>
-                    <button class="tab-button" onclick="showAdminTab('masters')">Мастера</button>
-                    <button class="tab-button" onclick="showAdminTab('services')">Услуги</button>
-                </div>
-                
-                <div id="adminTabContent">
-                    <!-- Контент вкладок загружается динамически -->
-                </div>
+            <div class="admin-tabs">
+                <button class="tab-button active" onclick="showAdminTab('overview')">Обзор</button>
+                <button class="tab-button" onclick="showAdminTab('appointments')">Записи</button>
+                <button class="tab-button" onclick="showAdminTab('clients')">Клиенты</button>
+                <button class="tab-button" onclick="showAdminTab('masters')">Мастера</button>
+                <button class="tab-button" onclick="showAdminTab('services')">Услуги</button>
+            </div>
+            
+            <div id="adminTabContent">
+                <!-- Контент вкладок загружается динамически -->
             </div>
         `;
         
         // Загружаем первую вкладку по умолчанию
-        await this.showAdminTab('overview');
+        await window.showAdminTab('overview');
     }
     
     getStatusText(status) {
@@ -497,22 +597,20 @@ class AuthManager {
     }
     
     updateNavigation() {
-        const loginButton = document.querySelector('.btn-login');
+        const user = UserUtils.get();
         const isLoggedIn = UserUtils.isLoggedIn();
         
-        if (isLoggedIn) {
-            const user = UserUtils.get();
-            loginButton.innerHTML = `
-                <i class="fas fa-user-circle"></i>
-                <span>${user.firstName}</span>
-            `;
-            loginButton.onclick = () => this.showUserDashboard();
+        const userInfo = document.getElementById('userInfo');
+        const loginBtn = document.getElementById('loginBtn');
+        const userNameHeader = document.getElementById('userNameHeader');
+        
+        if (isLoggedIn && user) {
+            userInfo.style.display = 'flex';
+            loginBtn.style.display = 'none';
+            userNameHeader.textContent = `${user.firstName} ${user.lastName}`;
         } else {
-            loginButton.innerHTML = `
-                <i class="fas fa-user"></i>
-                <span>Войти</span>
-            `;
-            loginButton.onclick = () => this.showAuthModal();
+            userInfo.style.display = 'none';
+            loginBtn.style.display = 'flex';
         }
     }
 }
