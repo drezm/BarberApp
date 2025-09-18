@@ -1,18 +1,25 @@
+// backend/routes/clients.js
 const express = require('express');
 const router = express.Router();
 const clientController = require('../controllers/clientController');
-const { authenticateToken, requireRole } = require('../middleware');
+const { authenticateToken, isAdmin, isClient } = require('../middleware');
 
-// Получение всех клиентов (админ)
-router.get('/', authenticateToken, requireRole('admin'), clientController.getAllClients);
+// Получение всех клиентов (только админы)
+router.get('/', authenticateToken, isAdmin, clientController.getAllClients);
 
-// Получение клиента по ID (админ)
-router.get('/:id', authenticateToken, requireRole('admin'), clientController.getClientById);
+// Получение клиента по ID (только админы)
+router.get('/:id', authenticateToken, isAdmin, clientController.getClientById);
 
-// Обновление клиента (админ)
-router.put('/:id', authenticateToken, requireRole('admin'), clientController.updateClient);
+// Создание нового клиента (только админы)
+router.post('/', authenticateToken, isAdmin, clientController.createClient);
 
-// Удаление клиента (админ)
-router.delete('/:id', authenticateToken, requireRole('admin'), clientController.deleteClient);
+// Обновление клиента (только админы)
+router.put('/:id', authenticateToken, isAdmin, clientController.updateClient);
+
+// Удаление клиента (только админы)
+router.delete('/:id', authenticateToken, isAdmin, clientController.deleteClient);
+
+// Получение статистики клиента (для самого клиента)
+router.get('/stats/me', authenticateToken, isClient, clientController.getClientStats);
 
 module.exports = router;

@@ -3,267 +3,281 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Barbershop King - Система записи</title>
-    <meta name="description" content="Современная система записи в барбершоп с удобным интерфейсом">
-    <link rel="stylesheet" href="css/style.css">
+    <title>Barbershop King - Стильные стрижки для современных мужчин</title>
+    <meta name="description" content="Лучший барбершоп в городе. Профессиональные мастера, современные техники стрижки, индивидуальный подход к каждому клиенту.">
+    
+    <!-- Шрифты и иконки -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Стили -->
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <!-- Навигация -->
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="nav-logo">
+    <!-- Хедер -->
+    <header class="header">
+        <nav class="nav container">
+            <a href="#home" class="logo">
                 <i class="fas fa-cut"></i>
-                <span>Barbershop King</span>
-            </div>
-            <ul class="nav-menu">
-                <li class="nav-item">
-                    <a href="#home" class="nav-link active">Главная</a>
-                </li>
-                <li class="nav-item">
-                    <a href="#services" class="nav-link">Услуги</a>
-                </li>
-                <li class="nav-item">
-                    <a href="#masters" class="nav-link">Мастера</a>
-                </li>
-                <li class="nav-item">
-                    <a href="#booking" class="nav-link">Запись</a>
-                </li>
+                KING
+            </a>
+            
+            <ul class="nav-links" id="navLinks">
+                <li><a href="#home" class="nav-link active">Главная</a></li>
+                <li><a href="#services" class="nav-link">Услуги</a></li>
+                <li><a href="#masters" class="nav-link">Мастера</a></li>
+                <li><a href="#booking" class="nav-link">Запись</a></li>
             </ul>
-            <div class="nav-actions">
-                <button class="btn-login" onclick="showAuthModal()">
+            
+            <div class="user-section">
+                <div id="userInfo" style="display: none;">
+                    <div class="user-info">
+                        <i class="fas fa-user-circle"></i>
+                        <span id="userNameHeader"></span>
+                    </div>
+                    <button class="btn btn-logout" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Выйти
+                    </button>
+                </div>
+                <button class="btn btn-login" id="loginBtn" onclick="showAuthModal()">
                     <i class="fas fa-user"></i>
-                    <span>Войти</span>
+                    Войти
                 </button>
-                <button class="btn-menu-toggle">
-                    <span></span>
-                    <span></span>
-                    <span></span>
+                <button class="menu-toggle" id="menuToggle">
+                    <i class="fas fa-bars"></i>
                 </button>
             </div>
-        </div>
-    </nav>
+        </nav>
+    </header>
 
-    <!-- Главная секция -->
-    <section id="home" class="hero">
-        <div class="hero-content">
-            <div class="hero-text">
-                <h1 class="hero-title">
-                    Стильная стрижка
-                    <span class="highlight">в один клик</span>
-                </h1>
-                <p class="hero-subtitle">
-                    Профессиональные барберы, современное оборудование и удобная система записи онлайн
-                </p>
-                <div class="hero-actions">
-                    <button class="btn-primary" onclick="scrollToSection('booking')">
-                        <i class="fas fa-calendar-plus"></i>
-                        Записаться сейчас
-                    </button>
-                    <button class="btn-secondary" onclick="scrollToSection('services')">
-                        <i class="fas fa-info-circle"></i>
-                        Узнать больше
-                    </button>
-                </div>
-            </div>
-            <div class="hero-visual">
-                <div class="hero-card">
-                    <div class="card-header">
-                        <div class="card-avatar"></div>
-                        <div class="card-info">
-                            <h3>Дмитрий Стригунов</h3>
-                            <p>Мастер-барбер</p>
+    <!-- Основной контент -->
+    <main id="mainContent">
+        <!-- Герой -->
+        <section id="home" class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <div class="hero-text">
+                        <h1 class="hero-title">СТИЛЬ. КАЧЕСТВО. МАСТЕРСТВО.</h1>
+                        <p class="hero-subtitle">Современный барбершоп для мужчин, которые ценят качество и стиль. Профессиональные мастера создадут идеальный образ именно для вас.</p>
+                        <div class="hero-cta">
+                            <a href="#booking" class="btn btn-primary">
+                                <i class="fas fa-calendar-plus"></i>
+                                Записаться сейчас
+                            </a>
+                            <a href="#services" class="btn btn-secondary">
+                                <i class="fas fa-list"></i>
+                                Наши услуги
+                            </a>
+                        </div>
+                        <div class="hero-stats">
+                            <div class="stat-item">
+                                <strong>500+</strong>
+                                <span>Довольных клиентов</span>
+                            </div>
+                            <div class="stat-item">
+                                <strong>5</strong>
+                                <span>Профессиональных мастеров</span>
+                            </div>
+                            <div class="stat-item">
+                                <strong>3</strong>
+                                <span>Года на рынке</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="card-stats">
-                        <div class="stat">
-                            <span class="stat-number">500+</span>
-                            <span class="stat-label">Довольных клиентов</span>
-                        </div>
-                        <div class="stat">
-                            <span class="stat-number">5.0</span>
-                            <span class="stat-label">Средний рейтинг</span>
-                        </div>
+                    <div class="hero-card">
+                        <h3>Почему выбирают нас?</h3>
+                        <ul class="hero-features">
+                            <li><i class="fas fa-check"></i> Опытные мастера с большим стажем</li>
+                            <li><i class="fas fa-check"></i> Современное оборудование и материалы</li>
+                            <li><i class="fas fa-check"></i> Индивидуальный подход к каждому</li>
+                            <li><i class="fas fa-check"></i> Комфортная атмосфера и сервис</li>
+                            <li><i class="fas fa-check"></i> Удобная онлайн-запись</li>
+                        </ul>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Секция услуг -->
-    <section id="services" class="services">
-        <div class="container">
-            <div class="section-header">
+        <!-- Услуги -->
+        <section id="services" class="section">
+            <div class="container">
                 <h2 class="section-title">Наши услуги</h2>
-                <p class="section-subtitle">Профессиональные барберские услуги высокого качества</p>
+                <p class="section-subtitle">Полный спектр парикмахерских услуг для создания вашего идеального стиля</p>
+                <div class="services-grid" id="servicesGrid">
+                    <!-- Услуги загружаются динамически -->
+                </div>
             </div>
-            <div class="services-grid" id="servicesGrid">
-                <!-- Услуги загружаются динамически -->
-            </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Секция мастеров -->
-    <section id="masters" class="masters">
-        <div class="container">
-            <div class="section-header">
+        <!-- Мастера -->
+        <section id="masters" class="section">
+            <div class="container">
                 <h2 class="section-title">Наши мастера</h2>
-                <p class="section-subtitle">Опытные барберы с многолетним стажем</p>
+                <p class="section-subtitle">Команда профессионалов с многолетним опытом и креативным подходом</p>
+                <div class="masters-grid" id="mastersGrid">
+                    <!-- Мастера загружаются динамически -->
+                </div>
             </div>
-            <div class="masters-grid" id="mastersGrid">
-                <!-- Мастера загружаются динамически -->
-            </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Секция записи -->
-    <section id="booking" class="booking">
-        <div class="container">
-            <div class="section-header">
-                <h2 class="section-title">Записаться на стрижку</h2>
-                <p class="section-subtitle">Выберите мастера, услугу и удобное время</p>
-            </div>
-            <div class="booking-form-container">
+        <!-- Запись -->
+        <section id="booking" class="section">
+            <div class="container">
+                <h2 class="section-title">Онлайн запись</h2>
+                <p class="section-subtitle">Выберите удобное время и запишитесь на прием за несколько кликов</p>
+                
                 <form id="bookingForm" class="booking-form">
                     <div class="form-group">
                         <label for="service">Выберите услугу</label>
-                        <select id="service" name="service" required>
+                        <select id="service" name="service" class="form-control" required>
                             <option value="">Выберите услугу</option>
                         </select>
                     </div>
+                    
                     <div class="form-group">
                         <label for="master">Выберите мастера</label>
-                        <select id="master" name="master" required>
+                        <select id="master" name="master" class="form-control" required>
                             <option value="">Сначала выберите услугу</option>
                         </select>
                     </div>
+                    
                     <div class="form-group">
                         <label for="date">Выберите дату</label>
-                        <input type="date" id="date" name="date" required>
+                        <input type="date" id="date" name="date" class="form-control" required>
                     </div>
+                    
                     <div class="form-group">
-                        <label for="time">Выберите время</label>
-                        <div class="time-slots" id="timeSlots">
+                        <label>Выберите время</label>
+                        <div id="timeSlots" class="time-slots">
                             <p class="no-slots">Сначала выберите мастера и дату</p>
                         </div>
                     </div>
-                    <button type="submit" class="btn-primary full-width">
-                        <i class="fas fa-check"></i>
-                        Подтвердить запись
+                    
+                    <button type="submit" class="btn btn-primary full-width">
+                        <i class="fas fa-calendar-check"></i>
+                        Записаться
                     </button>
                 </form>
             </div>
+        </section>
+    </main>
+
+    <!-- Пользовательский дашборд -->
+    <div id="userDashboard" class="dashboard">
+        <div class="container">
+            <div class="dashboard-header">
+                <div>
+                    <h2 class="dashboard-title">
+                        <i class="fas fa-tachometer-alt"></i>
+                        Личный кабинет
+                    </h2>
+                    <p>Добро пожаловать, <span id="userName">Пользователь</span>!</p>
+                </div>
+            </div>
+            <div id="dashboardContent">
+                <!-- Контент дашборда загружается динамически -->
+            </div>
         </div>
-    </section>
+    </div>
 
     <!-- Модальное окно авторизации -->
     <div id="authModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3 id="modalTitle">Вход в систему</h3>
-                <button class="modal-close" onclick="closeAuthModal()">
+                <button type="button" class="modal-close" onclick="closeAuthModal()">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             <div class="modal-body">
-                <form id="authForm">
+                <form id="authForm" class="form">
                     <div class="form-group">
                         <label for="email">Email</label>
-                        <input type="email" id="email" name="email" required>
+                        <input type="email" id="email" name="email" class="form-control" required 
+                               placeholder="Введите ваш email">
                     </div>
+                    
                     <div class="form-group">
                         <label for="password">Пароль</label>
-                        <input type="password" id="password" name="password" required>
+                        <input type="password" id="password" name="password" class="form-control" required 
+                               placeholder="Введите пароль">
                     </div>
-                    <div id="registerFields" class="register-fields" style="display: none;">
+                    
+                    <div id="registerFields" class="register-fields">
                         <div class="form-group">
                             <label for="firstName">Имя</label>
-                            <input type="text" id="firstName" name="firstName">
+                            <input type="text" id="firstName" name="firstName" class="form-control" 
+                                   placeholder="Введите ваше имя">
                         </div>
+                        
                         <div class="form-group">
                             <label for="lastName">Фамилия</label>
-                            <input type="text" id="lastName" name="lastName">
+                            <input type="text" id="lastName" name="lastName" class="form-control" 
+                                   placeholder="Введите вашу фамилию">
                         </div>
+                        
                         <div class="form-group">
                             <label for="phone">Телефон</label>
-                            <input type="tel" id="phone" name="phone">
+                            <input type="tel" id="phone" name="phone" class="form-control" 
+                                   placeholder="+7 (999) 123-45-67">
                         </div>
+                        
                         <div class="form-group">
                             <label for="role">Роль</label>
-                            <select id="role" name="role">
+                            <select id="role" name="role" class="form-control">
                                 <option value="client">Клиент</option>
                                 <option value="master">Мастер</option>
                                 <option value="admin">Администратор</option>
                             </select>
                         </div>
                     </div>
-                    <button type="submit" class="btn-primary full-width">
+                    
+                    <button type="submit" class="btn btn-primary full-width">
                         <span id="authButtonText">Войти</span>
                     </button>
                 </form>
+                
                 <div class="auth-switch">
-                    <p>
-                        <span id="authSwitchText">Нет аккаунта?</span>
-                        <a href="#" id="authSwitchLink" onclick="toggleAuthMode()">Зарегистрироваться</a>
-                    </p>
+                    <span id="authSwitchText">Нет аккаунта?</span>
+                    <a href="#" id="authSwitchLink" onclick="toggleAuthMode()">Зарегистрироваться</a>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Дашборд пользователя -->
-    <div id="userDashboard" class="dashboard" style="display: none;">
-        <div class="dashboard-header">
-            <h2>Личный кабинет</h2>
-            <div class="user-info">
-                <span id="userName"></span>
-                <button class="btn-logout" onclick="logout()">
-                    <i class="fas fa-sign-out-alt"></i>
-                    Выйти
-                </button>
-            </div>
-        </div>
-        <div class="dashboard-content" id="dashboardContent">
-            <!-- Контент загружается динамически в зависимости от роли -->
-        </div>
-    </div>
-
-    <!-- Подвал -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-brand">
-                    <div class="footer-logo">
-                        <i class="fas fa-cut"></i>
-                        <span>Barbershop King</span>
-                    </div>
-                    <p>Современная система записи в барбершоп</p>
-                </div>
-                <div class="footer-info">
-                    <div class="footer-section">
-                        <h4>Контакты</h4>
-                        <p><i class="fas fa-phone"></i> +7 (999) 123-45-67</p>
-                        <p><i class="fas fa-envelope"></i> info@barbershopking.ru</p>
-                        <p><i class="fas fa-map-marker-alt"></i> г. Москва, ул. Примерная, 1</p>
-                    </div>
-                    <div class="footer-section">
-                        <h4>Режим работы</h4>
-                        <p>Пн-Пт: 9:00 - 21:00</p>
-                        <p>Сб-Вс: 10:00 - 20:00</p>
-                    </div>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; 2025 Barbershop King. Все права защищены. Разработано Герцан М.В.</p>
-            </div>
-        </div>
-    </footer>
 
     <!-- Скрипты -->
     <script src="js/auth.js"></script>
     <script src="js/main.js"></script>
+    
+    <script>
+        // Инициализация бургер-меню
+        document.getElementById('menuToggle').addEventListener('click', function() {
+            const navLinks = document.getElementById('navLinks');
+            const icon = this.querySelector('i');
+            
+            navLinks.classList.toggle('active');
+            
+            if (navLinks.classList.contains('active')) {
+                icon.className = 'fas fa-times';
+            } else {
+                icon.className = 'fas fa-bars';
+            }
+        });
+        
+        // Закрытие меню при клике на ссылку
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function() {
+                const navLinks = document.getElementById('navLinks');
+                const menuToggle = document.getElementById('menuToggle');
+                const icon = menuToggle.querySelector('i');
+                
+                navLinks.classList.remove('active');
+                icon.className = 'fas fa-bars';
+            });
+        });
+    </script>
 </body>
 </html>

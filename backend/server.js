@@ -16,18 +16,27 @@ const masterRoutes = require('./routes/masters');
 const serviceRoutes = require('./routes/services');
 const appointmentRoutes = require('./routes/appointments');
 
-// Базовая защита
-// Отключаем встроенный CSP от helmet и задаём собственный CSP, где разрешены inline-обработчики
+// Отключаем стандартный CSP helmet
 app.use(helmet({ contentSecurityPolicy: false }));
 
-// Разрешаем inline-скрипты и inline-атрибуты (onclick и т.п.) — это нужно,
-// потому что в верстке и шаблонах используются onclick/онлайн-обработчики.
-// В продакшене лучше заменить inline-обработчики на addEventListener + nonce/hash CSP.
+// Настраиваем CSP с поддержкой Google Fonts и Font Awesome
 app.use((req, res, next) => {
-  // Разрешаем локальные ресурсы, inline-скрипты, атрибуты-обработчики и inline-стили
   res.setHeader(
     'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' 'unsafe-inline'; script-src-attr 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
+    [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline'",
+      "script-src-attr 'unsafe-inline'", 
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
+      "style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
+      "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com",
+      "connect-src 'self'",
+      "img-src 'self' data: blob:",
+      "media-src 'self'",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'"
+    ].join('; ')
   );
   next();
 });
@@ -38,7 +47,7 @@ app.use(cors({
   credentials: true
 }));
 
-// Ограничение частоты запросов
+// Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
@@ -49,7 +58,7 @@ app.use(limiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Статические файлы (фронтенд)
+// Статические файлы
 app.use(express.static(path.join(__dirname, '../frontend')));
 
 // API маршруты
@@ -67,7 +76,7 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/index.html'));
 });
 
-// Глобальная обработка ошибок
+// Обработка ошибок
 app.use((error, req, res, next) => {
   console.error('Ошибка сервера:', error);
   res.status(500).json({
@@ -76,9 +85,8 @@ app.use((error, req, res, next) => {
   });
 });
 
-// 404
 app.use((req, res) => {
-  res.status(404).json({ error: 'Не найдено', message: 'Запрашиваемый ресурс не существует' });
+  res.status(404).json({ error: 'Не найдено' });
 });
 
 app.listen(PORT, () => {
