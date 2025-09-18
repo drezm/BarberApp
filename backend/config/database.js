@@ -1,4 +1,7 @@
+// backend/config/database.js
 require('dotenv').config();
+console.log('> DEBUG: DATABASE_URL=', process.env.DATABASE_URL);
+
 const { Pool } = require('pg');
 
 if (!process.env.DATABASE_URL) {
@@ -12,4 +15,3 @@ const pool = new Pool({
 });
 
 module.exports = { pool, query: (t,p) => pool.query(t,p) };
-
