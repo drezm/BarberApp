@@ -1,24 +1,25 @@
-const { Pool } = require('pg');
+// backend/config/database.js
+
+// **В начале** файла до любых импортов pg
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
 require('dotenv').config();
+const { Pool } = require('pg');
+
+if (!process.env.DB_URL) {
+  console.error('DB_URL is not set');
+  process.exit(1);
+}
 
 const pool = new Pool({
-  user: process.env.DB_USER || 'postgres',
-  host: process.env.DB_HOST || 'localhost',
-  database: process.env.DB_NAME || 'barbershop_booking',
-  password: process.env.DB_PASSWORD || 'postgres',
-  port: process.env.DB_PORT || 5432,
+  connectionString: process.env.DB_URL,
+  ssl: { rejectUnauthorized: false }
 });
 
-// Проверка подключения к базе данных
-pool.on('connect', () => {
-  console.log('Подключено к базе данных PostgreSQL');
-});
-
-pool.on('error', (err) => {
-  console.error('Ошибка подключения к базе данных:', err);
-});
+pool.on('error', (err) => console.error('[DB] pool error:', err));
 
 module.exports = {
-  query: (text, params) => pool.query(text, params),
-  pool
+  pool,
+  query: (t, p) => pool.query(t, p),
 };
+
