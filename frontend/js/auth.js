@@ -159,6 +159,30 @@ class ApiClient {
         return this.request('/masters');
     }
     
+    async getMasterById(id) {
+        return this.request(`/masters/${id}`);
+    }
+    
+    async createMaster(masterData) {
+        return this.request('/masters', {
+            method: 'POST',
+            body: masterData
+        });
+    }
+    
+    async updateMaster(id, masterData) {
+        return this.request(`/masters/${id}`, {
+            method: 'PUT',
+            body: masterData
+        });
+    }
+    
+    async deleteMaster(id) {
+        return this.request(`/masters/${id}`, {
+            method: 'DELETE'
+        });
+    }
+    
     async getMasterSchedule(masterId, date = null) {
         const params = date ? `?date=${date}` : '';
         return this.request(`/masters/${masterId}/schedule${params}`);
@@ -176,7 +200,7 @@ class ApiClient {
     }
     
     async getMasterStats() {
-        return this.request('/masters/stats');
+        return this.request('/masters/stats/me');
     }
     
     // Методы для записей
@@ -490,7 +514,7 @@ class AuthManager {
                                     </div>
                                 </div>
                                 ${appointment.status === 'scheduled' ? `
-                                    <button onclick="cancelAppointment('${appointment.id}')" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: var(--fs-sm);">
+                                    <button onclick="cancelAppointment('${appointment.id}')" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 14px;">
                                         Отменить запись
                                     </button>
                                 ` : ''}
@@ -583,8 +607,16 @@ class AuthManager {
             </div>
         `;
         
-        // Загружаем первую вкладку по умолчанию
-        await window.showAdminTab('overview');
+        // ИСПРАВЛЕНО: ждём загрузки main.js перед вызовом showAdminTab
+        setTimeout(() => {
+            if (typeof showAdminTab === 'function') {
+                showAdminTab('overview');
+            } else {
+                // Если функция ещё не загружена, показываем простой контент
+                const tabContent = document.getElementById('adminTabContent');
+                tabContent.innerHTML = '<p>Загрузка админ-панели...</p>';
+            }
+        }, 100);
     }
     
     getStatusText(status) {

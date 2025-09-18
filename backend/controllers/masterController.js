@@ -2,6 +2,12 @@
 const db = require('../config/database');
 const bcrypt = require('bcrypt');
 
+// Функция для валидации UUID
+function isValidUUID(str) {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
+}
+
 const masterController = {
   // Получение всех мастеров
   async getAllMasters(req, res) {
@@ -28,6 +34,11 @@ const masterController = {
   async getMasterById(req, res) {
     try {
       const { id } = req.params;
+
+      // Валидация UUID
+      if (!isValidUUID(id)) {
+        return res.status(400).json({ error: 'Некорректный ID мастера' });
+      }
 
       const masterResult = await db.query(
         `SELECT id, email, first_name, last_name, phone, avatar_url, created_at 
@@ -61,6 +72,8 @@ const masterController = {
     try {
       const { email, password, firstName, lastName, phone, serviceIds = [] } = req.body;
 
+      console.log('Создание мастера:', { email, firstName, lastName, phone, serviceIds });
+
       if (!email || !password || !firstName || !lastName) {
         return res.status(400).json({
           error: 'Необходимо заполнить все обязательные поля: email, пароль, имя, фамилия'
@@ -84,13 +97,28 @@ const masterController = {
       );
 
       const masterId = result.rows[0].id;
+      console.log('Мастер создан с ID:', masterId);
 
       // Привязка услуг
       if (Array.isArray(serviceIds) && serviceIds.length > 0) {
-        const serviceInserts = serviceIds.map(serviceId =>
-          db.query('INSERT INTO master_services (master_id, service_id) VALUES ($1, $2)', [masterId, serviceId])
-        );
-        await Promise.all(serviceInserts);
+        console.log('Привязываем услуги:', serviceIds);
+
+        // Валидация serviceIds
+        const validServiceIds = [];
+        for (const serviceId of serviceIds) {
+          if (isValidUUID(serviceId)) {
+            validServiceIds.push(serviceId);
+          } else {
+            console.warn('Некорректный ID услуги:', serviceId);
+          }
+        }
+
+        if (validServiceIds.length > 0) {
+          const serviceInserts = validServiceIds.map(serviceId =>
+            db.query('INSERT INTO master_services (master_id, service_id) VALUES ($1, $2)', [masterId, serviceId])
+          );
+          await Promise.all(serviceInserts);
+        }
       }
 
       res.status(201).json({
@@ -108,6 +136,14 @@ const masterController = {
     try {
       const { id } = req.params;
       const { email, firstName, lastName, phone, serviceIds, password } = req.body;
+
+      console.log('Обновление мастера ID:', id);
+      console.log('Данные:', { email, firstName, lastName, phone, serviceIds, password: !!password });
+
+      // Валидация UUID мастера
+      if (!isValidUUID(id)) {
+        return res.status(400).json({ error: 'Некорректный ID мастера' });
+      }
 
       // Проверяем существование мастера
       const existingMaster = await db.query(
@@ -155,7 +191,7 @@ const masterController = {
         updateValues.push(phone);
         paramCounter++;
       }
-      if (password) {
+      if (password && password.trim()) {
         const hashedPassword = await bcrypt.hash(password, 10);
         updateFields.push(`password_hash = $${paramCounter}`);
         updateValues.push(hashedPassword);
@@ -172,17 +208,38 @@ const masterController = {
           WHERE id = $${paramCounter} AND role = 'master'
           RETURNING id, email, first_name, last_name, phone, updated_at
         `;
+        
+        console.log('Executing query:', query);
+        console.log('With values:', updateValues);
+        
         await db.query(query, updateValues);
       }
 
       // Обновление услуг
       if (Array.isArray(serviceIds)) {
+        console.log('Обновляем услуги мастера:', serviceIds);
+        
+        // Удаляем старые связи
         await db.query('DELETE FROM master_services WHERE master_id = $1', [id]);
+        
+        // Добавляем новые связи
         if (serviceIds.length > 0) {
-          const serviceInserts = serviceIds.map(serviceId =>
-            db.query('INSERT INTO master_services (master_id, service_id) VALUES ($1, $2)', [id, serviceId])
-          );
-          await Promise.all(serviceInserts);
+          // Валидация serviceIds
+          const validServiceIds = [];
+          for (const serviceId of serviceIds) {
+            if (isValidUUID(serviceId)) {
+              validServiceIds.push(serviceId);
+            } else {
+              console.warn('Некорректный ID услуги при обновлении:', serviceId);
+            }
+          }
+
+          if (validServiceIds.length > 0) {
+            const serviceInserts = validServiceIds.map(serviceId =>
+              db.query('INSERT INTO master_services (master_id, service_id) VALUES ($1, $2)', [id, serviceId])
+            );
+            await Promise.all(serviceInserts);
+          }
         }
       }
 
@@ -197,6 +254,11 @@ const masterController = {
   async deleteMaster(req, res) {
     try {
       const { id } = req.params;
+
+      // Валидация UUID
+      if (!isValidUUID(id)) {
+        return res.status(400).json({ error: 'Некорректный ID мастера' });
+      }
 
       // Проверяем существование мастера
       const existingMaster = await db.query('SELECT id FROM users WHERE id = $1 AND role = $2', [id, 'master']);
@@ -227,11 +289,16 @@ const masterController = {
     }
   },
 
-  // Остальные методы остаются без изменений...
+  // Получение расписания мастера
   async getMasterSchedule(req, res) {
     try {
       const { masterId } = req.params;
       const { date } = req.query;
+
+      // Валидация UUID
+      if (!isValidUUID(masterId)) {
+        return res.status(400).json({ error: 'Некорректный ID мастера' });
+      }
 
       let query = `
         SELECT id, date, start_time, end_time, is_available
@@ -334,6 +401,11 @@ const masterController = {
   async getMasterServices(req, res) {
     try {
       const { masterId } = req.params;
+
+      // Валидация UUID
+      if (!isValidUUID(masterId)) {
+        return res.status(400).json({ error: 'Некорректный ID мастера' });
+      }
 
       const result = await db.query(`
         SELECT s.id, s.name, s.description, s.price, s.duration_minutes

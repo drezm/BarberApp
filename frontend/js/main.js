@@ -371,13 +371,15 @@ async function showAdminTab(tabName) {
 
 async function loadAdminOverview(container) {
     try {
-        const [appointments, clients] = await Promise.all([
+        const [appointments, clients, masters] = await Promise.all([
             api.getAllAppointments(),
-            api.getAllClients()
+            api.getAllClients(),
+            api.getMasters()
         ]);
         
         const totalAppointments = appointments.appointments?.length || 0;
         const totalClients = clients.clients?.length || 0;
+        const totalMasters = masters.masters?.length || 0;
         const completedAppointments = appointments.appointments?.filter(a => a.status === 'completed').length || 0;
         const totalRevenue = appointments.appointments?.filter(a => a.status === 'completed').reduce((sum, a) => sum + parseFloat(a.total_price || 0), 0) || 0;
         
@@ -390,6 +392,10 @@ async function loadAdminOverview(container) {
                 <div class="stat-card">
                     <h3>Всего клиентов</h3>
                     <div class="value">${totalClients}</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Всего мастеров</h3>
+                    <div class="value">${totalMasters}</div>
                 </div>
                 <div class="stat-card">
                     <h3>Завершено записей</h3>
@@ -515,8 +521,13 @@ async function loadAdminClients(container) {
 
 async function loadAdminMasters(container) {
     try {
-        const response = await api.getMasters();
-        const masters = response.masters || [];
+        const [mastersResponse, servicesResponse] = await Promise.all([
+            api.getMasters(),
+            api.getServices()
+        ]);
+        
+        const masters = mastersResponse.masters || [];
+        const services = servicesResponse.services || [];
         
         container.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
@@ -537,7 +548,7 @@ async function loadAdminMasters(container) {
                         <div class="master-services">
                             ${(master.services || []).filter(s => s).map(service => 
                                 `<span class="service-tag">${service}</span>`
-                            ).join('') || '<span class="service-tag">Услуги не назначены</span>'}
+                            ).join('') || '<span class="service-tag" style="opacity: 0.5;">Услуги не назначены</span>'}
                         </div>
                         <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
                             <button onclick="editMaster('${master.id}')" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 14px; flex: 1;">
@@ -553,6 +564,10 @@ async function loadAdminMasters(container) {
                 `).join('') || '<p style="text-align: center; color: var(--text-soft);">Мастеров пока нет</p>'}
             </div>
         `;
+        
+        // Сохраняем услуги в глобальную переменную для использования в модалах
+        window.availableServices = services;
+        
     } catch (error) {
         container.innerHTML = '<p style="color: var(--muted);">Ошибка при загрузке мастеров</p>';
         console.error('Ошибка загрузки мастеров:', error);
@@ -609,7 +624,7 @@ async function loadAdminServices(container) {
     }
 }
 
-// CRUD операции
+// CRUD операции для услуг
 function showCreateServiceModal() {
     notifications.info('Открываем форму создания услуги...');
     
@@ -642,7 +657,7 @@ function showCreateServiceModal() {
                         <input type="number" name="duration_minutes" class="form-control" min="1" required>
                     </div>
                     <div class="form-group">
-                        <label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem;">
                             <input type="checkbox" name="is_active" checked>
                             Активная услуга
                         </label>
@@ -716,7 +731,7 @@ async function editService(serviceId) {
                             <input type="number" name="duration_minutes" class="form-control" value="${service.duration_minutes}" min="1" required>
                         </div>
                         <div class="form-group">
-                            <label>
+                            <label style="display: flex; align-items: center; gap: 0.5rem;">
                                 <input type="checkbox" name="is_active" ${service.is_active ? 'checked' : ''}>
                                 Активная услуга
                             </label>
@@ -773,7 +788,7 @@ async function deleteService(serviceId) {
     }
 }
 
-// Функции для управления клиентами
+// CRUD операции для клиентов
 function showCreateClientModal() {
     const modal = document.createElement('div');
     modal.className = 'modal active';
@@ -805,7 +820,7 @@ function showCreateClientModal() {
                     </div>
                     <div class="form-group">
                         <label>Телефон</label>
-                        <input type="tel" name="phone" class="form-control">
+                        <input type="tel" name="phone" class="form-control" placeholder="+7 (999) 123-45-67">
                     </div>
                     <button type="submit" class="btn btn-primary full-width">
                         <i class="fas fa-plus"></i>
@@ -872,7 +887,7 @@ async function editClient(clientId) {
                         </div>
                         <div class="form-group">
                             <label>Телефон</label>
-                            <input type="tel" name="phone" class="form-control" value="${client.phone || ''}">
+                            <input type="tel" name="phone" class="form-control" value="${client.phone || ''}" placeholder="+7 (999) 123-45-67">
                         </div>
                         <button type="submit" class="btn btn-primary full-width">
                             <i class="fas fa-save"></i>
@@ -925,17 +940,200 @@ async function deleteClient(clientId) {
     }
 }
 
-// Заглушки для мастеров (аналогично клиентам)
+// CRUD операции для мастеров
 function showCreateMasterModal() {
-    notifications.info('Создание мастера пока не реализовано');
+    const services = window.availableServices || [];
+    
+    const modal = document.createElement('div');
+    modal.className = 'modal active';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Добавить мастера</h3>
+                <button type="button" class="modal-close" onclick="this.closest('.modal').remove()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="createMasterForm" class="form">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" name="email" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Пароль</label>
+                        <input type="password" name="password" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Имя</label>
+                        <input type="text" name="firstName" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Фамилия</label>
+                        <input type="text" name="lastName" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Телефон</label>
+                        <input type="tel" name="phone" class="form-control" placeholder="+7 (999) 123-45-67">
+                    </div>
+                    <div class="form-group">
+                        <label>Услуги мастера</label>
+                        <div class="services-checkboxes" style="max-height: 200px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--r-md); padding: var(--sp-3);">
+                            ${services.map(service => `
+                                <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; padding: 0.5rem; border-radius: var(--r-sm); transition: var(--transition);" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background='transparent'">
+                                    <input type="checkbox" name="serviceIds" value="${service.id}">
+                                    <span>${service.name} (${service.price} ₽)</span>
+                                </label>
+                            `).join('') || '<p style="color: var(--muted); text-align: center; padding: 1rem;">Услуги не найдены</p>'}
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary full-width">
+                        <i class="fas fa-plus"></i>
+                        Создать мастера
+                    </button>
+                </form>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    modal.querySelector('#createMasterForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const formData = new FormData(e.target);
+        const serviceIds = formData.getAll('serviceIds').map(id => parseInt(id));
+        
+        const masterData = {
+            email: formData.get('email'),
+            password: formData.get('password'),
+            firstName: formData.get('firstName'),
+            lastName: formData.get('lastName'),
+            phone: formData.get('phone'),
+            serviceIds: serviceIds
+        };
+        
+        try {
+            await api.createMaster(masterData);
+            notifications.success('Мастер успешно создан');
+            modal.remove();
+            await showAdminTab('masters');
+        } catch (error) {
+            notifications.error('Ошибка при создании мастера: ' + error.message);
+        }
+    });
 }
 
-function editMaster(masterId) {
-    notifications.info('Редактирование мастера пока не реализовано');
+async function editMaster(masterId) {
+    try {
+        const [master, services] = await Promise.all([
+            api.getMasterById(masterId),
+            api.getServices()
+        ]);
+        
+        const masterServiceIds = master.services?.map(s => s.id) || [];
+        
+        const modal = document.createElement('div');
+        modal.className = 'modal active';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Редактировать мастера</h3>
+                    <button type="button" class="modal-close" onclick="this.closest('.modal').remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="editMasterForm" class="form">
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" name="email" class="form-control" value="${master.email}" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Имя</label>
+                            <input type="text" name="firstName" class="form-control" value="${master.first_name}" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Фамилия</label>
+                            <input type="text" name="lastName" class="form-control" value="${master.last_name}" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Телефон</label>
+                            <input type="tel" name="phone" class="form-control" value="${master.phone || ''}" placeholder="+7 (999) 123-45-67">
+                        </div>
+                        <div class="form-group">
+                            <label>Новый пароль (оставьте пустым, если не хотите менять)</label>
+                            <input type="password" name="password" class="form-control" placeholder="Новый пароль">
+                        </div>
+                        <div class="form-group">
+                            <label>Услуги мастера</label>
+                            <div class="services-checkboxes" style="max-height: 200px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--r-md); padding: var(--sp-3);">
+                                ${services.services?.map(service => `
+                                    <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; padding: 0.5rem; border-radius: var(--r-sm); transition: var(--transition);" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background='transparent'">
+                                        <input type="checkbox" name="serviceIds" value="${service.id}" ${masterServiceIds.includes(service.id) ? 'checked' : ''}>
+                                        <span>${service.name} (${service.price} ₽)</span>
+                                    </label>
+                                `).join('') || '<p style="color: var(--muted); text-align: center; padding: 1rem;">Услуги не найдены</p>'}
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary full-width">
+                            <i class="fas fa-save"></i>
+                            Сохранить изменения
+                        </button>
+                    </form>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        modal.querySelector('#editMasterForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const serviceIds = formData.getAll('serviceIds').map(id => parseInt(id));
+            
+            const masterData = {
+                email: formData.get('email'),
+                firstName: formData.get('firstName'),
+                lastName: formData.get('lastName'),
+                phone: formData.get('phone'),
+                serviceIds: serviceIds
+            };
+            
+            // Добавляем пароль только если он указан
+            const password = formData.get('password');
+            if (password && password.trim()) {
+                masterData.password = password;
+            }
+            
+            try {
+                await api.updateMaster(masterId, masterData);
+                notifications.success('Мастер успешно обновлён');
+                modal.remove();
+                await showAdminTab('masters');
+            } catch (error) {
+                notifications.error('Ошибка при обновлении мастера: ' + error.message);
+            }
+        });
+        
+    } catch (error) {
+        notifications.error('Ошибка при загрузке данных мастера: ' + error.message);
+    }
 }
 
-function deleteMaster(masterId) {
-    notifications.info('Удаление мастера пока не реализовано');
+async function deleteMaster(masterId) {
+    if (!confirm('Вы уверены, что хотите удалить этого мастера?')) {
+        return;
+    }
+    
+    try {
+        await api.deleteMaster(masterId);
+        notifications.success('Мастер успешно удалён');
+        await showAdminTab('masters');
+    } catch (error) {
+        notifications.error('Ошибка при удалении мастера: ' + error.message);
+    }
 }
 
 // Остальные функции
